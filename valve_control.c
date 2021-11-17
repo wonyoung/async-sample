@@ -15,10 +15,6 @@ void close_valve(void);
 
 async do_valve_control(struct async *st);
 
-void transition_to_open_valve(void);
-void transition_to_close_valve(void);
-void transition_to_end(void);
-
 int main(void)
 {
     struct async st;
@@ -85,27 +81,9 @@ TIME_T gTimer;
 async do_valve_control(struct async *st)
 {
     async_begin(st);
-        transition_to_open_valve();
-        async_yield;
-
         await_for(1, open_valve());
-
-        transition_to_close_valve();
 
         await_for(5, close_valve());
 
-        transition_to_end();
     async_end;
-}
-
-void transition_to_open_valve(void)
-{
-}
-
-void transition_to_close_valve(void)
-{
-}
-
-void transition_to_end(void)
-{
 }
