@@ -23,15 +23,16 @@ int main(void)
 void open_valve(void)
 {
     static TIME_T t = 0;
-    if (t % (ONE_SECOND/2) == 0)
-        printf("Valve - Open\n");
-    t++;
+    static int cnt = 0;
+    if (++t % (ONE_SECOND/2) == 0) {
+        printf("Valve - Open #%d\n", ++cnt);
+    }
 }
 
 void close_valve(void)
 {
     static TIME_T t = 0;
-    if (t % (ONE_SECOND/2) == 0)
-        printf("Valve - Close\n"); 
-    t++;
+    static int cnt = 0;
+    if (++t % (ONE_SECOND/2) == 0)
+        printf("Valve - Close #%d\n", ++cnt);
 }
