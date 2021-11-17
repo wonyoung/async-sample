@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "async.h"
 
 typedef long long TIME_T;
 #define ONE_SECOND      (50000000)
@@ -17,7 +18,7 @@ int Timer_SecCheckPassTime(TIME_T *t, int sec);
 void open_valve(void);
 void close_valve(void);
 
-void do_valve_control(void);
+async do_valve_control(struct async *st);
 
 int time_expired_seconds(int sec);
 void transition_to_open_valve(void);
@@ -26,9 +27,11 @@ void transition_to_end(void);
 
 int main(void)
 {
+    struct async st;
+    async_init(&st);
     while(1)
     {
-        do_valve_control();
+        async_call(do_valve_control, &st);
 
         // do_motor_control();
         // do_pump_control();
@@ -86,33 +89,20 @@ int time_expired_seconds(int sec)
     return Timer_SecCheckPassTime(&gTimer, sec);
 }
 
-void do_valve_control(void)
+async do_valve_control(struct async *st)
 {
-    static int sState = INIT_STEP;
-    switch(sState)
-    {
-        case INIT_STEP:
-            transition_to_open_valve();
-            sState = OPEN_VALVE_STEP;
-            break;
-        case OPEN_VALVE_STEP:
-            open_valve();
-            if (time_expired_seconds(1)) {
-                transition_to_close_valve();
-                sState = CLOSE_VALVE_STEP;
-            }
-            break;
-        case CLOSE_VALVE_STEP:
-            close_valve();
-            if (time_expired_seconds(5)) {
-                transition_to_end();
-                sState = END_STEP;
-            }
-            break;
-        case END_STEP:
-        default:
-            break;
-    }
+    async_begin(st);
+        transition_to_open_valve();
+        async_yield;
+
+        await((open_valve(), time_expired_seconds(1)));
+
+        transition_to_close_valve();
+
+        await((close_valve(), time_expired_seconds(5)));
+
+        transition_to_end();
+    async_end;
 }
 
 void transition_to_open_valve(void)
