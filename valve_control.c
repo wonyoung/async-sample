@@ -19,9 +19,9 @@ void close_valve(void);
 
 void do_valve_control(void);
 
-void step_init(void);
-void step_open_valve(void);
-void step_close_valve(void);
+void transition_to_open_valve(void);
+void transition_to_close_valve_after_1s(void);
+void transition_to_end_after_5s(void);
 
 int main(void)
 {
@@ -86,13 +86,15 @@ void do_valve_control(void)
     switch(gState)
     {
         case INIT_STEP:
-            step_init();
+            transition_to_open_valve();
             break;
         case OPEN_VALVE_STEP:
-            step_open_valve();
+            open_valve();
+            transition_to_close_valve_after_1s();
             break;
         case CLOSE_VALVE_STEP:
-            step_close_valve();
+            close_valve();
+            transition_to_end_after_5s();
             break;
         case END_STEP:
         default:
@@ -100,15 +102,14 @@ void do_valve_control(void)
     }
 }
 
-void step_init(void)
+void transition_to_open_valve(void)
 {
     Timer_GetTime(&gTimer);
     gState = OPEN_VALVE_STEP;
 }
 
-void step_open_valve(void)
+void transition_to_close_valve_after_1s(void)
 {
-    open_valve();
     if (Timer_SecCheckPassTime(&gTimer, 1))
     {
         gState = CLOSE_VALVE_STEP;
@@ -116,9 +117,8 @@ void step_open_valve(void)
     }
 }
 
-void step_close_valve(void)
+void transition_to_end_after_5s(void)
 {
-    close_valve();
     if (Timer_SecCheckPassTime(&gTimer, 5))
     {
         gState = END_STEP;
