@@ -13,11 +13,16 @@ int Timer_SecCheckPassTime(TIME_T *t, int sec);
 void open_valve(void);
 void close_valve(void);
 
-async do_valve_control(struct async *st);
+typedef struct {
+    async_state;
+    int i;
+} ValveState_T;
+
+async do_valve_control(ValveState_T *st);
 
 int main(void)
 {
-    struct async st;
+    ValveState_T st;
     async_init(&st);
     while(1)
     {
@@ -78,12 +83,16 @@ TIME_T gTimer;
     Timer_GetTime(&gTimer);\
     await((stmt, Timer_SecCheckPassTime(&gTimer, sec)))
 
-async do_valve_control(struct async *st)
+async do_valve_control(ValveState_T *st)
 {
     async_begin(st);
-        await_for(1, open_valve());
 
-        await_for(5, close_valve());
+        for (st->i = 0; st->i < 3; st->i++)
+        {
+            await_for(1, open_valve());
+
+            await_for(5, close_valve());
+        }
 
     async_end;
 }
