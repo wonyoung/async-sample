@@ -4,6 +4,11 @@ typedef long long TIME_T;
 #define ONE_SECOND      (50000000)
 #define PRINT_INTERVAL  (ONE_SECOND/2)
 
+TIME_T gCurrentTime = 0;
+void tick_timer(void);
+void Timer_GetTime(TIME_T *t);
+int Timer_SecCheckPassTime(TIME_T *t, int sec);
+
 #define OPEN_VALVE_STEP     (1)
 #define CLOSE_VALVE_STEP    (2)
 
@@ -25,6 +30,8 @@ int main(void)
 
         // do_something_else1();
         // do_something_else2();
+
+        tick_timer();
     }
 
     return 0;
@@ -32,6 +39,23 @@ int main(void)
 
 
 
+
+void tick_timer(void)
+{
+    gCurrentTime++;
+}
+
+void Timer_GetTime(TIME_T *t)
+{
+    *t = gCurrentTime;
+}
+
+int Timer_SecCheckPassTime(TIME_T *t, int sec)
+{
+    if (*t + sec*ONE_SECOND < gCurrentTime)
+        return 1;
+    return 0;
+}
 
 void open_valve(void)
 {
