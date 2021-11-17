@@ -19,9 +19,10 @@ void close_valve(void);
 
 void do_valve_control(void);
 
+int time_expired_seconds(int sec);
 void transition_to_open_valve(void);
-void transition_to_close_valve_after_1s(void);
-void transition_to_end_after_5s(void);
+void transition_to_close_valve(void);
+void transition_to_end(void);
 
 int main(void)
 {
@@ -78,23 +79,35 @@ void close_valve(void)
         printf("Valve - Close #%lld\n", cnt / PRINT_INTERVAL);
 }
 
-int gState = INIT_STEP;
 TIME_T gTimer;
+
+int time_expired_seconds(int sec)
+{
+    return Timer_SecCheckPassTime(&gTimer, sec);
+}
 
 void do_valve_control(void)
 {
-    switch(gState)
+    static int sState = INIT_STEP;
+    switch(sState)
     {
         case INIT_STEP:
             transition_to_open_valve();
+            sState = OPEN_VALVE_STEP;
             break;
         case OPEN_VALVE_STEP:
             open_valve();
-            transition_to_close_valve_after_1s();
+            if (time_expired_seconds(1)) {
+                transition_to_close_valve();
+                sState = CLOSE_VALVE_STEP;
+            }
             break;
         case CLOSE_VALVE_STEP:
             close_valve();
-            transition_to_end_after_5s();
+            if (time_expired_seconds(5)) {
+                transition_to_end();
+                sState = END_STEP;
+            }
             break;
         case END_STEP:
         default:
@@ -105,22 +118,13 @@ void do_valve_control(void)
 void transition_to_open_valve(void)
 {
     Timer_GetTime(&gTimer);
-    gState = OPEN_VALVE_STEP;
 }
 
-void transition_to_close_valve_after_1s(void)
+void transition_to_close_valve(void)
 {
-    if (Timer_SecCheckPassTime(&gTimer, 1))
-    {
-        gState = CLOSE_VALVE_STEP;
-        Timer_GetTime(&gTimer);
-    }
+    Timer_GetTime(&gTimer);
 }
 
-void transition_to_end_after_5s(void)
+void transition_to_end(void)
 {
-    if (Timer_SecCheckPassTime(&gTimer, 5))
-    {
-        gState = END_STEP;
-    }
 }
