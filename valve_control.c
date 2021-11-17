@@ -10,17 +10,11 @@ void tick_timer(void);
 void Timer_GetTime(TIME_T *t);
 int Timer_SecCheckPassTime(TIME_T *t, int sec);
 
-#define INIT_STEP           (0)
-#define OPEN_VALVE_STEP     (1)
-#define CLOSE_VALVE_STEP    (2)
-#define END_STEP            (3)
-
 void open_valve(void);
 void close_valve(void);
 
 async do_valve_control(struct async *st);
 
-int time_expired_seconds(int sec);
 void transition_to_open_valve(void);
 void transition_to_close_valve(void);
 void transition_to_end(void);
@@ -84,10 +78,9 @@ void close_valve(void)
 
 TIME_T gTimer;
 
-int time_expired_seconds(int sec)
-{
-    return Timer_SecCheckPassTime(&gTimer, sec);
-}
+#define await_for(sec, stmt) \
+    Timer_GetTime(&gTimer);\
+    await((stmt, Timer_SecCheckPassTime(&gTimer, sec)))
 
 async do_valve_control(struct async *st)
 {
@@ -95,11 +88,11 @@ async do_valve_control(struct async *st)
         transition_to_open_valve();
         async_yield;
 
-        await((open_valve(), time_expired_seconds(1)));
+        await_for(1, open_valve());
 
         transition_to_close_valve();
 
-        await((close_valve(), time_expired_seconds(5)));
+        await_for(5, close_valve());
 
         transition_to_end();
     async_end;
@@ -107,12 +100,10 @@ async do_valve_control(struct async *st)
 
 void transition_to_open_valve(void)
 {
-    Timer_GetTime(&gTimer);
 }
 
 void transition_to_close_valve(void)
 {
-    Timer_GetTime(&gTimer);
 }
 
 void transition_to_end(void)
