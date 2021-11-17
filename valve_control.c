@@ -9,8 +9,10 @@ void tick_timer(void);
 void Timer_GetTime(TIME_T *t);
 int Timer_SecCheckPassTime(TIME_T *t, int sec);
 
+#define INIT_STEP           (0)
 #define OPEN_VALVE_STEP     (1)
 #define CLOSE_VALVE_STEP    (2)
+#define END_STEP            (3)
 
 void open_valve(void);
 void close_valve(void);
@@ -72,18 +74,33 @@ void close_valve(void)
         printf("Valve - Close #%lld\n", cnt / PRINT_INTERVAL);
 }
 
-int gState = OPEN_VALVE_STEP;
+int gState = INIT_STEP;
+TIME_T gTimer;
 
 void do_valve_control(void)
 {
     switch(gState)
     {
+        case INIT_STEP:
+            Timer_GetTime(&gTimer);
+            gState = OPEN_VALVE_STEP;
+            break;
         case OPEN_VALVE_STEP:
             open_valve();
+            if (Timer_SecCheckPassTime(&gTimer, 1))
+            {
+                gState = CLOSE_VALVE_STEP;
+                Timer_GetTime(&gTimer);
+            }
             break;
         case CLOSE_VALVE_STEP:
             close_valve();
+            if (Timer_SecCheckPassTime(&gTimer, 5))
+            {
+                gState = END_STEP;
+            }
             break;
+        case END_STEP:
         default:
             break;
     }
