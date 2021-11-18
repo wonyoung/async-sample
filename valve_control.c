@@ -1,7 +1,8 @@
 #include <stdio.h>
 
 typedef long long TIME_T;
-#define ONE_SECOND (50000000)
+#define ONE_SECOND      (50000000)
+#define PRINT_INTERVAL  (ONE_SECOND/2)
 
 void open_valve(void);
 void close_valve(void);
@@ -22,17 +23,15 @@ int main(void)
 
 void open_valve(void)
 {
-    static TIME_T t = 0;
-    static int cnt = 0;
-    if (++t % (ONE_SECOND/2) == 0) {
-        printf("Valve - Open #%d\n", ++cnt);
+    static long long cnt = 0;
+    if (++cnt % PRINT_INTERVAL == 0) {
+        printf("Valve - Open #%lld\n", cnt / PRINT_INTERVAL);
     }
 }
 
 void close_valve(void)
 {
-    static TIME_T t = 0;
-    static int cnt = 0;
-    if (++t % (ONE_SECOND/2) == 0)
-        printf("Valve - Close #%d\n", ++cnt);
+    static long long cnt = 0;
+    if (++cnt % PRINT_INTERVAL == 0)
+        printf("Valve - Close #%lld\n", cnt / PRINT_INTERVAL);
 }
